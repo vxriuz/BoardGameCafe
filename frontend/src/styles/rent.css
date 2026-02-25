@@ -1,0 +1,152 @@
+/* ======== Rent Page Theme ======== */
+/* Uses same class names as tables.css — this file overrides when RentPage loads */
+
+/* -------- Basic page -------- */
+.table-page {
+  font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  width: 1060px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  background: #fefcf9;
+  border-radius: 24px;
+  padding: 36px 60px;
+  max-height: 1150px;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.title {
+  margin: 0 0 16px 0;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #2c1810;
+  letter-spacing: -0.5px;
+}
+
+/* -------- Layout (same structure) -------- */
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr 300px;
+  grid-template-rows: 1fr auto;
+  gap: 16px;
+  min-height: 75vh;
+}
+
+/* -------- Panels -------- */
+.panel {
+  background: #fff;
+  border: 1px solid rgba(44, 24, 16, 0.1);
+  border-radius: 18px;
+  padding: 16px;
+
+  box-shadow: 0 2px 12px rgba(44, 24, 16, 0.05);
+}
+
+.panelTitle {
+  font-weight: 800;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  color: #6b4c2a;
+}
+
+/* -------- Cards -------- */
+.yellowBox,
+.tableCard,
+.topBox {
+  background: linear-gradient(160deg, #fff8ed 0%, #f5e6c8 100%);
+  border: 1px solid rgba(200, 150, 78, 0.25);
+  border-radius: 14px;
+  padding: 14px;
+
+  box-shadow: 0 4px 14px rgba(44, 24, 16, 0.08);
+  color: #2c1810;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.yellowBox:hover,
+.tableCard:hover,
+.topBox:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(44, 24, 16, 0.12);
+}
+
+.tableCard {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+/* -------- Lists / spacing -------- */
+.tableList {
+  display: grid;
+  gap: 12px;
+}
+
+.createBox {
+  display: grid;
+  gap: 12px;
+}
+
+.topBox {
+  min-height: 120px;
+}
+
+/* -------- Bottom bar -------- */
+.bottomBar {
+  grid-column: 1 / -1;
+  border: 1px solid rgba(44, 24, 16, 0.08);
+  border-radius: 16px;
+  padding: 12px;
+
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(44, 24, 16, 0.05);
+}
+
+.bottomBtn {
+  background: linear-gradient(160deg, #fff8ed 0%, #f5e6c8 100%);
+  border: 1px solid rgba(200, 150, 78, 0.3);
+  border-radius: 12px;
+  padding: 11px 22px;
+
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.3px;
+  color: #2c1810;
+  cursor: pointer;
+  text-decoration: none;
+
+  box-shadow: 0 3px 10px rgba(44, 24, 16, 0.08);
+  transition: all 0.2s ease;
+}
+
+.bottomBtn:hover {
+  background: linear-gradient(160deg, #f5e6c8 0%, #e8d4a8 100%);
+  box-shadow: 0 6px 18px rgba(44, 24, 16, 0.14);
+  transform: translateY(-1px);
+  color: #2c1810;
+}
+
+.bottomBtn:active {
+  transform: translateY(1px);
+}
+
+/* -------- Special rent box -------- */
+.rent-game {
+  background: linear-gradient(160deg, #fff8ed 0%, #f5e6c8 100%);
+  height: 170px;
+  width: 100%;
+
+  border-radius: 14px;
+  border: 1px solid rgba(200, 150, 78, 0.25);
+  box-shadow: 0 4px 14px rgba(44, 24, 16, 0.08);
+}

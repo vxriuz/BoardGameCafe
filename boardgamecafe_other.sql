@@ -1,0 +1,105 @@
+select * from Orders;
+select * from Rentals;
+select * from Game_Category_Link;
+select * from Visits;
+select * from Games;
+select * from Categories;
+select * from Menu_Items;
+select * from Staff;
+select * from Cafe_Tables;
+
+
+-- PROCEDURE: Starta ett nytt besök (skapar Visit, tilldelar bord)
+-- TRIGGER: Uppdatera Total_Bill automatiskt när en Order läggs till
+-- FUNCTION: Beräkna speltid för en rental i minuter
+
+
+-- Q1: Visa tillgängliga spel med deras kategorier (JOIN + multirelation)
+-- "En kund vill välja ett spel att hyra"
+select distinct Games.Title, Categories.Category_Name from Games join game_category_link 
+ON Games.Game_ID = Game_Category_Link.Game_ID
+join Categories
+ON Game_Category_Link.Category_ID = Categories.Category_ID
+where Games.Status = "Available"
+
+
+-- Q2: Visa notan för ett besök (JOIN + aggregation + multirelation)
+-- "Kunden vill betala — visa allt de beställt och totalpris"
+SELECT Visits.Visit_ID, 
+       Menu_Items.Item_Name, 
+       Menu_Items.Price, 
+       Orders.Quantity,
+       (Orders.Quantity * Menu_Items.Price) AS Line_Total
+FROM Visits
+JOIN Orders ON Visits.Visit_ID = Orders.Visit_ID
+JOIN Menu_Items ON Orders.Item_ID = Menu_Items.Item_ID
+ORDER BY Visits.Visit_ID;
+
+
+-- Q3: Mest populära spelen (JOIN + GROUP BY + aggregation)
+-- "Ägaren vill veta vilka spel som hyrs mest"
+SELECT Title, COUNT(*) AS Number_of_rentals 
+FROM Games
+JOIN Rentals on Games.Game_ID = Rentals.Game_ID
+GROUP BY Games.Title;
+
+
+-- Q4: Intäkt per anställd (JOIN + GROUP BY + aggregation + multirelation)
+-- "Ägaren vill se vilken personal som genererar mest intäkter"
+SELECT Staff.Full_Name, SUM(Visits.Total_bill) AS totalSold
+FROM Visits
+JOIN Staff on Visits.Staff_ID = Staff.Staff_ID
+GROUP BY Staff.Full_Name
+ORDER BY totalSold desc;
+
+
+-- Q5: Visa lediga bord just nu (subquery)
+-- "Kund kommer in — vilka bord är tillgängliga?"
+SELECT Cafe_Tables.Table_ID, Cafe_Tables.Seat_Count FROM Cafe_Tables
+WHERE Cafe_Tables.Table_ID NOT IN (SELECT Visits.Table_ID from Visits where Visits.End_time IS NULL);
+
+
+-- TRIGGER: Uppdatera Total_Bill automatiskt vid ny order
+CREATE TRIGGER Update_bill
+AFTER INSERT ON Orders
+FOR EACH ROW 
+BEGIN
+    UPDATE Visits
+    SET Total_Bill = Total_Bill + (
+        SELECT Price from Menu_Items Where Item_ID = NEW.Item_ID)
+    WHERE Visit_ID = NEW.Visit_ID;
+END
+
+INSERT into Orders (Order_ID, Col);
+
+
+--Procedure: Skapa Order
+CREATE Procedure newOrder(
+    IN VisitID int,
+    IN ItemID int,
+    IN Quant int
+)
+BEGIN
+    INSERT INTO Orders (Visit_ID, Item_ID, Quantity)
+    VALUES (VisitID, ItemID, Quant);
+END
+
+
+
+--Procedure: Skapa Rental
+
+
+-- PROCEDURE: Starta nytt besök
+CREATE PROCEDURE newVisit(
+    IN Cafe_TableID INT,
+    IN StaffID INT
+)
+BEGIN
+    INSERT INTO Visits (Table_ID, Staff_ID, Start_Time, End_Time, Total_Bill)
+    VALUES (Cafe_TableID, StaffID, NOW(), NULL, 0);
+END
+
+CALL newVisit(2, 3);
+
+
+-- FUNCTION: Beräkna speltid i minuter
