@@ -13,6 +13,33 @@ select * from Cafe_Tables;
 -- TRIGGER: Uppdatera Total_Bill automatiskt när en Order läggs till
 -- FUNCTION: Beräkna speltid för en rental i minuter
 
+-- Hämta alla menyartiklar
+SELECT Menu_Items.Item_ID, Menu_Items.Item_Name, Menu_Items.Price, Menu_Items.Type
+        FROM Menu_Items
+        ORDER BY Menu_Items.Type, Menu_Items.Item_Name
+
+-- Alla bord med aktiv nota (om det finns)
+SELECT Cafe_Tables.Table_ID, Cafe_Tables.Seat_Count, Visits.Total_Bill, Visits.Visit_ID
+        FROM Cafe_Tables
+        LEFT JOIN Visits ON Cafe_Tables.Table_ID = Visits.Table_ID AND Visits.End_Time IS NULL
+        ORDER BY Cafe_Tables.Table_ID
+
+
+-- Hämta all personal
+SELECT Staff.Staff_ID, Staff.Full_Name, Staff.Role
+        FROM Staff
+
+
+-- Hämta alla menyartiklar
+SELECT Menu_Items.Item_ID, Menu_Items.Item_Name, Menu_Items.Price, Menu_Items.Type
+        FROM Menu_Items
+        ORDER BY Menu_Items.Type, Menu_Items.Item_Name
+
+
+
+
+
+
 
 -- Q1: Visa tillgängliga spel med deras kategorier (JOIN + multirelation)
 -- "En kund vill välja ett spel att hyra"
@@ -22,6 +49,7 @@ join game_category_link ON Games.Game_ID = Game_Category_Link.Game_ID
 join Categories ON Game_Category_Link.Category_ID = Categories.Category_ID
 where Games.Status = "Available"
 GROUP BY Games.Title;
+
 
 -- Q2: Visa notan för ett besök (JOIN + aggregation + multirelation)
 -- "Kunden vill betala — visa allt de beställt och totalpris"
@@ -41,7 +69,8 @@ ORDER BY Visits.Visit_ID;
 SELECT Title, COUNT(*) AS Number_of_rentals 
 FROM Games
 JOIN Rentals on Games.Game_ID = Rentals.Game_ID
-GROUP BY Games.Title;
+GROUP BY Games.Title
+ORDER BY Number_of_rentals DESC;
 
 
 -- Q4: Intäkt per anställd (JOIN + GROUP BY + aggregation + multirelation)
@@ -57,7 +86,6 @@ ORDER BY totalSold desc;
 -- "Kund kommer in — vilka bord är tillgängliga?"
 SELECT Cafe_Tables.Table_ID, Cafe_Tables.Seat_Count FROM Cafe_Tables
 WHERE Cafe_Tables.Table_ID NOT IN (SELECT Visits.Table_ID from Visits where Visits.End_time IS NULL);
-
 
 
 
@@ -112,3 +140,5 @@ BEGIN
         SELECT Price * NEW.Quantity FROM Menu_Items WHERE Item_ID = NEW.Item_ID)
     WHERE Visit_ID = NEW.Visit_ID;
 END;
+
+
