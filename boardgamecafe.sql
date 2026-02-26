@@ -185,3 +185,58 @@ INSERT INTO Orders (Visit_ID, Item_ID, Quantity) VALUES
 (10, 3, 2), (10, 4, 1),
 (11, 2, 5), (11, 5, 3), (11, 7, 2),
 (12, 1, 2), (12, 6, 2);
+
+
+
+-- PROCEDURES & TRIGGER
+
+-- PROCEDURE: Starta nytt besök
+DROP PROCEDURE IF EXISTS newVisit;
+CREATE PROCEDURE newVisit(
+    IN Cafe_TableID INT,
+    IN StaffID INT
+)
+BEGIN
+    INSERT INTO Visits (Table_ID, Staff_ID, Start_Time, End_Time, Total_Bill)
+    VALUES (Cafe_TableID, StaffID, NOW(), NULL, 0);
+END;
+
+
+-- Procedure: Skapa Rental
+DROP PROCEDURE IF EXISTS newRental;
+CREATE Procedure newRental(
+    IN VisitID INT,
+    IN GameID INT
+)
+BEGIN
+    INSERT INTO Rentals (Visit_ID, Game_ID, Time_Rented, Time_Returned)
+    VALUES (VisitID, GameID, NOW(), NULL);
+    UPDATE Games SET Status = "Rented" WHERE  Game_ID = GameID;
+END;
+
+
+-- Procedure: Skapa Order
+DROP PROCEDURE IF EXISTS newOrder;
+CREATE Procedure newOrder(
+    IN VisitID int,
+    IN ItemID int,
+    IN Quant int
+)
+BEGIN
+    INSERT INTO Orders (Visit_ID, Item_ID, Quantity)
+    VALUES (VisitID, ItemID, Quant);
+END;
+
+
+-- TRIGGER: Uppdatera Total_Bill automatiskt vid ny order
+DROP TRIGGER IF EXISTS Update_bill;
+CREATE TRIGGER Update_bill
+AFTER INSERT ON Orders
+FOR EACH ROW
+BEGIN
+    UPDATE Visits
+    SET Total_Bill = Total_Bill + (
+        SELECT Price * NEW.Quantity FROM Menu_Items WHERE Item_ID = NEW.Item_ID)
+    WHERE Visit_ID = NEW.Visit_ID;
+END;
+

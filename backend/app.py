@@ -92,16 +92,19 @@ def get_all_games():
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute("""
-        SELECT DISTINCT Games.Title, Categories.Category_Name
+        SELECT Games.Title, GROUP_CONCAT(Categories.Category_Name SEPARATOR ', ') AS Categories
         FROM Games
         JOIN Game_Category_Link ON Games.Game_ID = Game_Category_Link.Game_ID
         JOIN Categories ON Game_Category_Link.Category_ID = Categories.Category_ID
         WHERE Games.Status = 'Available'
+        GROUP BY Games.Title
     """)
     result = cursor.fetchall()
     cursor.close()
     db.close()
     return jsonify(result)
+
+
 
 
 # Q2: Visa notan för ett besök (JOIN + aggregation + multirelation)
@@ -193,7 +196,24 @@ def new_order():
     return jsonify({"message": "Order added"}), 201
 
 
-# POST /api/new-rental — Hyr ett spel
+# Hämta tillgängliga spel (för rental-dropdown)
+@app.route("/api/available-games")
+def get_available_games():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT Games.Game_ID, Games.Title
+        FROM Games
+        WHERE Games.Status = 'Available'
+        ORDER BY Games.Title
+    """)
+    result = cursor.fetchall()
+    cursor.close()
+    db.close()
+    return jsonify(result)
+
+
+# PROCEDURE: Skapa Rental
 @app.route("/api/new-rental", methods=["POST"])
 def new_rental():
     data = request.json
@@ -202,10 +222,7 @@ def new_rental():
 
     db = get_db()
     cursor = db.cursor()
-    cursor.execute(
-        "INSERT INTO Rentals (Visit_ID, Game_ID, Time_Rented) VALUES (%s, %s, NOW())",
-        (visit_id, game_id)
-    )
+    cursor.callproc("newRental", [visit_id, game_id])
     db.commit()
     cursor.close()
     db.close()

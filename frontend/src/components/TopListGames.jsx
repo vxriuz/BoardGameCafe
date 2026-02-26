@@ -4,8 +4,8 @@ export default function TopListGame() {
   const [gameList, setGameList] = useState([]);
 
   async function fetchAllGames() {
-    // Q1: Visa tillgängliga spel med kategorier
-    // Förväntar sig: [{ Title: "Catan", Category_Name: "Strategy" }, ...]
+    // Q1: Visa tillgängliga spel med kategorier (GROUP_CONCAT)
+    // Förväntar sig: [{ Title: "Catan", Categories: "Strategy, Family" }, ...]
     const res = await fetch("http://localhost:5000/api/allGames");
     const data = await res.json();
     console.log("Fetched data:", data);
@@ -15,15 +15,15 @@ export default function TopListGame() {
 
   return (
     <>
-      <div className="panelTitle">Available Games</div>
+      <div className="panelTitle">Categories</div>
 
       <button className="action-btn" onClick={fetchAllGames}>Load Games</button>
 
       <div className="tableList" style={{ marginTop: "12px" }}>
-        {gameList.map((game, index) => (
-          <div key={game.Title + game.Category_Name} className="tableCard">
+        {gameList.map((game) => (
+          <div key={game.Title} className="tableCard">
             <p>
-              {game.Title} — <em>{game.Category_Name}</em>
+              {game.Title} — <em>{game.Categories}</em>
             </p>
           </div>
         ))}

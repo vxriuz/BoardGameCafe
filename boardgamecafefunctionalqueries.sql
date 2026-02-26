@@ -16,18 +16,18 @@ select * from Cafe_Tables;
 
 -- Q1: Visa tillgängliga spel med deras kategorier (JOIN + multirelation)
 -- "En kund vill välja ett spel att hyra"
-select distinct Games.Title, Categories.Category_Name from Games join game_category_link 
-ON Games.Game_ID = Game_Category_Link.Game_ID
-join Categories
-ON Game_Category_Link.Category_ID = Categories.Category_ID
+select distinct Games.Title, GROUP_CONCAT(Categories.Category_Name SEPARATOR ', ') AS Categories
+from Games 
+join game_category_link ON Games.Game_ID = Game_Category_Link.Game_ID
+join Categories ON Game_Category_Link.Category_ID = Categories.Category_ID
 where Games.Status = "Available"
-
+GROUP BY Games.Title;
 
 -- Q2: Visa notan för ett besök (JOIN + aggregation + multirelation)
 -- "Kunden vill betala — visa allt de beställt och totalpris"
 SELECT Visits.Visit_ID, 
-       Menu_Items.Item_Name, 
-       Menu_Items.Price, 
+       Menu_Items.Item_Name,
+       Menu_Items.Price,
        Orders.Quantity,
        (Orders.Quantity * Menu_Items.Price) AS Line_Total
 FROM Visits
@@ -59,21 +59,37 @@ SELECT Cafe_Tables.Table_ID, Cafe_Tables.Seat_Count FROM Cafe_Tables
 WHERE Cafe_Tables.Table_ID NOT IN (SELECT Visits.Table_ID from Visits where Visits.End_time IS NULL);
 
 
--- TRIGGER: Uppdatera Total_Bill automatiskt vid ny order
-CREATE TRIGGER Update_bill
-AFTER INSERT ON Orders
-FOR EACH ROW 
+
+
+-- PROCEDURES & TRIGGER
+
+-- PROCEDURE: Starta nytt besök
+DROP PROCEDURE IF EXISTS newVisit;
+CREATE PROCEDURE newVisit(
+    IN Cafe_TableID INT,
+    IN StaffID INT
+)
 BEGIN
-    UPDATE Visits
-    SET Total_Bill = Total_Bill + (
-        SELECT Price from Menu_Items Where Item_ID = NEW.Item_ID)
-    WHERE Visit_ID = NEW.Visit_ID;
-END
-
-INSERT into Orders (Order_ID, Col);
+    INSERT INTO Visits (Table_ID, Staff_ID, Start_Time, End_Time, Total_Bill)
+    VALUES (Cafe_TableID, StaffID, NOW(), NULL, 0);
+END;
 
 
---Procedure: Skapa Order
+-- Procedure: Skapa Rental
+DROP PROCEDURE IF EXISTS newRental;
+CREATE Procedure newRental(
+    IN VisitID INT,
+    IN GameID INT
+)
+BEGIN
+    INSERT INTO Rentals (Visit_ID, Game_ID, Time_Rented, Time_Returned)
+    VALUES (VisitID, GameID, NOW(), NULL);
+    UPDATE Games SET Status = "Rented" WHERE  Game_ID = GameID;
+END;
+
+
+-- Procedure: Skapa Order
+DROP PROCEDURE IF EXISTS newOrder;
 CREATE Procedure newOrder(
     IN VisitID int,
     IN ItemID int,
@@ -82,24 +98,17 @@ CREATE Procedure newOrder(
 BEGIN
     INSERT INTO Orders (Visit_ID, Item_ID, Quantity)
     VALUES (VisitID, ItemID, Quant);
-END
+END;
 
 
-
---Procedure: Skapa Rental
-
-
--- PROCEDURE: Starta nytt besök
-CREATE PROCEDURE newVisit(
-    IN Cafe_TableID INT,
-    IN StaffID INT
-)
+-- TRIGGER: Uppdatera Total_Bill automatiskt vid ny order
+DROP TRIGGER IF EXISTS Update_bill;
+CREATE TRIGGER Update_bill
+AFTER INSERT ON Orders
+FOR EACH ROW
 BEGIN
-    INSERT INTO Visits (Table_ID, Staff_ID, Start_Time, End_Time, Total_Bill)
-    VALUES (Cafe_TableID, StaffID, NOW(), NULL, 0);
-END
-
-CALL newVisit(2, 3);
-
-
--- FUNCTION: Beräkna speltid i minuter
+    UPDATE Visits
+    SET Total_Bill = Total_Bill + (
+        SELECT Price * NEW.Quantity FROM Menu_Items WHERE Item_ID = NEW.Item_ID)
+    WHERE Visit_ID = NEW.Visit_ID;
+END;

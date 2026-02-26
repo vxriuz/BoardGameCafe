@@ -1,81 +1,115 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function CreateVisit() {
+export default function CreateRent() {
+  const [tables, setTables] = useState([]);
+  const [games, setGames] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
-  const [selectedStaff, setSelectedStaff] = useState(null);
+  const [selectedGame, setSelectedGame] = useState(null);
+  const [message, setMessage] = useState("");
 
-  // Placeholder för framtida INSERT
+  // Hämta upptagna bord (de med aktiv Visit_ID)
+  useEffect(() => {
+    fetch("http://localhost:5000/api/tables/all")
+      .then((res) => res.json())
+      .then((data) => {
+        const occupied = data.filter((t) => t.Visit_ID !== null);
+        setTables(occupied);
+      });
+  }, []);
+
+  // Hämta tillgängliga spel
+  const fetchGames = () => {
+    fetch("http://localhost:5000/api/available-games")
+      .then((res) => res.json())
+      .then((data) => setGames(data));
+  };
+
+  // 2. Kalla på funktionen när komponenten laddas första gången
+  useEffect(() => {
+    fetchGames();
+  }, []);
+
   async function handleSend() {
-    if (!selectedTable || !selectedStaff) {
-      alert("Select table and staff first");
+    if (!selectedTable || !selectedGame) {
+      alert("Välj bord och spel först");
       return;
     }
 
-    console.log("Sending visit:", {
-      table_id: selectedTable,
-      staff: selectedStaff,
+    const res = await fetch("http://localhost:5000/api/new-rental", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        visit_id: selectedTable.Visit_ID,
+        game_id: selectedGame.Game_ID,
+      }),
     });
 
-    // SENARE:
-    // await fetch("http://localhost:5000/api/new-visit", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({
-    //     table_id: selectedTable,
-    //     staff: selectedStaff,
-    //   }),
-    // });
-
-    alert("Visit sent (placeholder)");
-    setSelectedTable(null);
-    setSelectedStaff(null);
+    if (res.ok) {
+      setMessage(`${selectedGame.Title} → Bord ${selectedTable.Table_ID}`);
+      setSelectedGame(null);
+      fetchGames();
+    } else {
+      setMessage("Något gick fel!");
+    }
   }
 
   return (
     <>
-      <div className="panelTitle">Rent Game</div>
+      <div className="panelTitle">Hyr spel</div>
 
       <div className="createBox">
-
-        {/* TABLE BUTTONS */}
+        {/* VÄLJ BORD — bara upptagna bord */}
         <div>
-          <p className="section-label">Select Table</p>
+          <p className="section-label">Välj bord</p>
           <div className="btn-group">
-            {[1, 2, 3, 4, 5].map((table) => (
+            {tables.length === 0 && (
+              <span style={{ color: "#a88b6a" }}>Inga aktiva besök</span>
+            )}
+            {tables.map((t) => (
               <button
-                key={table}
-                onClick={() => setSelectedTable(table)}
-                className={`select-btn${selectedTable === table ? " active" : ""}`}
+                key={t.Table_ID}
+                onClick={() => setSelectedTable(t)}
+                className={`select-btn${
+                  selectedTable?.Table_ID === t.Table_ID ? " active" : ""
+                }`}
               >
-                {table}
+                Bord {t.Table_ID}
               </button>
             ))}
           </div>
         </div>
 
-        {/* GAME BUTTONS */}
+        {/* VÄLJ SPEL — från databasen */}
         <div>
-          <p className="section-label">Select Game</p>
+          <p className="section-label">Välj spel</p>
           <div className="btn-group">
-            {["UNO", "CATAN", "MONOPOLY", "TICKET TO RIDE", "RISK"].map((name) => (
+            {games.map((g) => (
               <button
-                key={name}
-                onClick={() => setSelectedStaff(name)}
-                className={`select-btn${selectedStaff === name ? " active" : ""}`}
+                key={g.Game_ID}
+                onClick={() => setSelectedGame(g)}
+                className={`select-btn${
+                  selectedGame?.Game_ID === g.Game_ID ? " active" : ""
+                }`}
               >
-                {name}
+                {g.Title}
               </button>
             ))}
           </div>
         </div>
 
-        {/* SEND BUTTON */}
+        {/* SKICKA */}
         <div style={{ marginTop: "12px" }}>
           <button className="action-btn" onClick={handleSend}>
-            SEND
+            HYR SPEL
           </button>
         </div>
 
+        {/* BEKRÄFTELSE */}
+        {message && (
+          <div className="result-box" style={{ marginTop: "10px" }}>
+            ✓ {message}
+          </div>
+        )}
       </div>
     </>
   );
