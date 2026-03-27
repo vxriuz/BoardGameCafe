@@ -1,6 +1,6 @@
 # BoardGameCafe
 
-A full-stack web application for managing a simple board game café — handling visits, game rentals, food/drink orders and billing. Made as a final project for the Database Systems course at BTH
+A full-stack web application for managing a simple board game café — handling visits, game rentals, food/drink orders and billing. Made with my classmate Pontus Nordenfors as a final project for the Database Systems course at BTH
 
 ## Tech Stack
 
